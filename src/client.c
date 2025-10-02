@@ -17,10 +17,14 @@ typedef HANDLE thread_t;
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <stdint.h>
 typedef pthread_t thread_t;
 #define THREAD_FUNC void*
 #define THREAD_CREATE(thr, func, arg) pthread_create(thr, NULL, func, arg)
 #define THREAD_EXIT() return NULL
+typedef int SOCKET;           // <-- add this for SOCKET
+#define INVALID_SOCKET -1     // <-- add this for INVALID_SOCKET
+#define SOCKET_ERROR   -1 
 #endif
 
 #include <stdio.h>
