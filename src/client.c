@@ -18,12 +18,17 @@ typedef HANDLE thread_t;
 #include <sys/socket.h>
 #include <pthread.h>
 #include <stdint.h>
+#include <netdb.h>         
+#include <errno.h>         
+#include <string.h>   
 typedef pthread_t thread_t;
 #define THREAD_FUNC void*
 #define THREAD_CREATE(thr, func, arg) pthread_create(thr, NULL, func, arg)
 #define THREAD_EXIT() return NULL
-typedef int SOCKET;           // <-- add this for SOCKET
-#define INVALID_SOCKET -1     // <-- add this for INVALID_SOCKET
+#define WSAGetLastError() (errno)   
+#define ZeroMemory(Dst, Len) memset((Dst), 0, (Len))
+typedef int SOCKET;           
+#define INVALID_SOCKET -1     
 #define SOCKET_ERROR   -1 
 #endif
 
