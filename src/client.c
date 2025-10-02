@@ -53,7 +53,7 @@ THREAD_FUNC recv_thread(void *arg) {
 
 
 
-int main(int argc, char **argv) {
+int __cdecl main(int argc, char **argv) {
 
 #ifdef _WIN32
     WSADATA wsaData;
@@ -67,10 +67,8 @@ int main(int argc, char **argv) {
     struct addrinfo *result = NULL,
                     *ptr = NULL,
                     hints;
-    char recvbuf[DEFAULT_BUFLEN];
     int iResult;
-    int recvbuflen = DEFAULT_BUFLEN;
-    
+
     // Validate the parameters
     if (argc != 3) {
         printf("usage: %s <username> <server-ip>\n", argv[0]);
@@ -100,7 +98,7 @@ int main(int argc, char **argv) {
         ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, 
             ptr->ai_protocol);
         if (ConnectSocket == INVALID_SOCKET) {
-            printf("socket failed with error: %ld\n", WSAGetLastError());
+            printf("socket failed with error: %d\n", WSAGetLastError());
             exit(EXIT_FAILURE);
         }
 
@@ -139,7 +137,7 @@ int main(int argc, char **argv) {
         strcat(sendbuf, msg);
         int sent = send(ConnectSocket, sendbuf, (int)strlen(sendbuf), 0);
         if (sent == SOCKET_ERROR) {
-            printf("send failed with error: %ld\n", WSAGetLastError());
+            printf("send failed with error: %d\n", WSAGetLastError());
             break;
         }
     }

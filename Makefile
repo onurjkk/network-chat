@@ -4,12 +4,14 @@ ifeq ($(OS),Windows_NT)
     CC = gcc
     CFLAGS = -Wall -Wextra -g
     LDFLAGS = -lws2_32
+    CLEANFILES = build\server.exe build\client.exe
 else
     EXE =
     RM = rm -f
     CC = gcc
     CFLAGS = -Wall -Wextra -g -pthread
     LDFLAGS =
+    CLEANFILES = build/server build/client
 endif
 
 SRC_DIR = src
@@ -28,6 +30,6 @@ $(BUILD_DIR)/client$(EXE): $(SRC_DIR)/client.c | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
 
 clean:
-	$(RM) $(BUILD_DIR)/server$(EXE) $(BUILD_DIR)/client$(EXE)
+	$(RM) $(CLEANFILES)
 
 .PHONY: all clean

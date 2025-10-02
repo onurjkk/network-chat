@@ -84,7 +84,7 @@ THREAD_FUNC client_thread(void *arg) {
 }
 
 
-int main(void) {
+int __cdecl main(void) {
     
 #ifdef _WIN32
     WSADATA wsaData;
@@ -96,7 +96,6 @@ int main(void) {
     int iResult;
 
     SOCKET ListenSocket = INVALID_SOCKET;
-    SOCKET ClientSocket = INVALID_SOCKET;
 
     struct addrinfo *result = NULL;
     struct addrinfo hints;
@@ -118,7 +117,7 @@ int main(void) {
 
     ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
     if (ListenSocket == INVALID_SOCKET) {
-        printf("socket failed with error: %ld\n", WSAGetLastError());
+        printf("socket failed with error: %d\n", WSAGetLastError());
         freeaddrinfo(result);
         return 1;
     }
