@@ -84,7 +84,7 @@ THREAD_FUNC client_thread(void *arg) {
 }
 
 
-int __cdecl main(void) {
+int main(void) {
     
 #ifdef _WIN32
     WSADATA wsaData;
