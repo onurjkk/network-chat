@@ -62,7 +62,7 @@ THREAD_FUNC client_thread(void *arg) {
     int len;
     while ((len = recv(client, buf, DEFAULT_BUFLEN, 0)) > 0) {
         buf[len] = '\0';
-        // Broadcast to all clients
+
         MUTEX_LOCK(&clients_lock);
         for (int i = 0; i < client_count; ++i) {
             if (clients[i] != client) {
@@ -71,7 +71,7 @@ THREAD_FUNC client_thread(void *arg) {
         }
         MUTEX_UNLOCK(&clients_lock);
     }
-    // Remove client
+    
     MUTEX_LOCK(&clients_lock);
     for (int i = 0; i < client_count; ++i) {
         if (clients[i] == client) {
@@ -113,7 +113,7 @@ int main(void) {
     hints.ai_protocol = IPPROTO_TCP;
     hints.ai_flags = AI_PASSIVE;
 
-
+    // need to dynamically change server ip
     iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
     if ( iResult != 0 ) {
         printf("getaddrinfo failed with error: %d\n", iResult);
@@ -155,6 +155,10 @@ int main(void) {
 
 
     while (1) {
+        // this to get maybe client ip??? tomorrow have to test it
+        // struct sockaddr client_ip = {0};
+        // unsigned int len = sizeof client_ip;
+        // SOCKET client = accpet(ListenSocket, &client_ip, &len);
         SOCKET client = accept(ListenSocket, NULL, NULL);
         if (client == INVALID_SOCKET) continue;
         MUTEX_LOCK(&clients_lock);

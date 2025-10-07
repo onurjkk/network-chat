@@ -74,7 +74,6 @@ int main(int argc, char **argv) {
                     hints;
     int iResult;
 
-    // Validate the parameters
     if (argc != 3) {
         printf("usage: %s <username> <server-ip>\n", argv[0]);
         return 1;
@@ -86,7 +85,7 @@ int main(int argc, char **argv) {
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
-    // Resolve the server address and port
+    
     iResult = getaddrinfo(argv[2], DEFAULT_PORT, &hints, &result);
     if ( iResult != 0 ) {
         printf("getaddrinfo failed with error: %d\n", iResult);
@@ -96,10 +95,10 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    // Attempt to connect to an address until one succeeds
+    
     for(ptr=result; ptr != NULL ;ptr=ptr->ai_next) {
 
-        // Create a SOCKET for connecting to server
+        
         ConnectSocket = socket(ptr->ai_family, ptr->ai_socktype, 
             ptr->ai_protocol);
         if (ConnectSocket == INVALID_SOCKET) {
@@ -107,7 +106,7 @@ int main(int argc, char **argv) {
             exit(EXIT_FAILURE);
         }
 
-        // Connect to server.
+        
         iResult = connect( ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
         if (iResult == SOCKET_ERROR) {
             #ifdef _WIN32
