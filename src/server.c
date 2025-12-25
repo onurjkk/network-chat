@@ -1,54 +1,10 @@
-#ifdef _WIN32
-#define _WIN32_WINNT 0x0600
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma comment(lib, "Ws2_32.lib")
-#include <process.h>
-typedef HANDLE thread_t;
-#define THREAD_FUNC unsigned __stdcall
-#define THREAD_CREATE(thr, func, arg) *(thr) = (HANDLE)_beginthreadex(NULL, 0, func, arg, 0, NULL)
-#define THREAD_EXIT() return 0
-#define MUTEX CRITICAL_SECTION
-#define MUTEX_INIT(m) InitializeCriticalSection(m)
-#define MUTEX_LOCK(m) EnterCriticalSection(m)
-#define MUTEX_UNLOCK(m) LeaveCriticalSection(m)
-#define MUTEX_DESTROY(m) DeleteCriticalSection(m)
-#else
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <pthread.h>
-#include <stdint.h>
-#include <netdb.h>         
-#include <errno.h>         
-#include <string.h>   
-typedef pthread_t thread_t;
-#define THREAD_FUNC void*
-#define THREAD_CREATE(thr, func, arg) pthread_create(thr, NULL, func, arg)
-#define THREAD_EXIT() return NULL
-#define MUTEX pthread_mutex_t
-#define MUTEX_INIT(m) pthread_mutex_init(m, NULL)
-#define MUTEX_LOCK(m) pthread_mutex_lock(m)
-#define MUTEX_UNLOCK(m) pthread_mutex_unlock(m)
-#define MUTEX_DESTROY(m) pthread_mutex_destroy(m)
-#define WSAGetLastError() (errno)   
-#define ZeroMemory(Dst, Len) memset((Dst), 0, (Len))
-typedef int SOCKET;           
-#define INVALID_SOCKET -1     
-#define SOCKET_ERROR   -1 
-#endif
-
+#include "platform.h"
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define DEFAULT_BUFLEN 256
-#define DEFAULT_PORT "27015"
+
 #define MAX_CLIENTS 32
 
 MUTEX clients_lock;
@@ -80,11 +36,7 @@ THREAD_FUNC client_thread(void *arg) {
         }
     }
     MUTEX_UNLOCK(&clients_lock);
-#ifdef _WIN32
-    closesocket(client);
-#else
-    close(client);
-#endif
+    CLOSE_SOCKET(client);
     THREAD_EXIT();
 }
 
@@ -132,11 +84,7 @@ int main(void) {
     if (iResult == SOCKET_ERROR) {
         printf("bind failed with error: %d\n", WSAGetLastError());
         freeaddrinfo(result);
-        #ifdef _WIN32
-            closesocket(ListenSocket);
-        #else
-            close(ListenSocket);
-        #endif
+        CLOSE_SOCKET(ListenSocket);
         return 1;
     }
 
@@ -145,43 +93,48 @@ int main(void) {
     iResult = listen(ListenSocket, SOMAXCONN);
     if (iResult == SOCKET_ERROR) {
         printf("listen failed with error: %d\n", WSAGetLastError());
-        #ifdef _WIN32
-            closesocket(ListenSocket);
-        #else
-            close(ListenSocket);
-        #endif
+        CLOSE_SOCKET(ListenSocket);
         return 1;
     }
 
 
     while (1) {
         // this to get maybe client ip??? tomorrow have to test it
-        // struct sockaddr client_ip = {0};
-        // unsigned int len = sizeof client_ip;
-        // SOCKET client = accpet(ListenSocket, &client_ip, &len);
-        SOCKET client = accept(ListenSocket, NULL, NULL);
+        struct sockaddr_in client_ip;
+        socklen_t len = sizeof(client_ip);
+        SOCKET client = accept(ListenSocket, (struct sockaddr*)&client_ip, &len);
+        char* ipstr = inet_ntoa(client_ip.sin_addr);
+        printf("Client connected: %s:%d\n", ipstr, ntohs(client_ip.sin_port));
+
         if (client == INVALID_SOCKET) continue;
         MUTEX_LOCK(&clients_lock);
         if (client_count < MAX_CLIENTS) {
             clients[client_count++] = client;
             thread_t tid;
             THREAD_CREATE(&tid, client_thread, (void*)(uintptr_t)client);
-    #ifdef _WIN32
-            CloseHandle(tid);
-    #else
-            pthread_detach(tid);
-    #endif
+            THREAD_DETACH(tid);
         } else {
-    #ifdef _WIN32
-            closesocket(client);
-    #else
-            close(client);
-    #endif
+            CLOSE_SOCKET(client);
         }
         MUTEX_UNLOCK(&clients_lock);
     }
 
+#ifdef _WIN32
     WSACleanup();
+#endif
 
     return 0;
 }
+
+
+
+
+/* TODO
+
+sql database for users: username,sha256 password, admin true/false
+dinamically change server ip
+add TSL security layer
+
+
+
+*/

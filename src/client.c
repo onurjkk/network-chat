@@ -1,46 +1,9 @@
-#ifdef _WIN32
-#define _WIN32_WINNT 0x0600
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <process.h>
-typedef HANDLE thread_t;
-#define THREAD_FUNC unsigned __stdcall
-#define THREAD_CREATE(thr, func, arg) *(thr) = (HANDLE)_beginthreadex(NULL, 0, func, arg, 0, NULL)
-#define THREAD_EXIT() return 0
-#pragma comment(lib, "Ws2_32.lib")
-#else
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <pthread.h>
-#include <stdint.h>
-#include <netdb.h>         
-#include <errno.h>         
-#include <string.h>   
-typedef pthread_t thread_t;
-#define THREAD_FUNC void*
-#define THREAD_CREATE(thr, func, arg) pthread_create(thr, NULL, func, arg)
-#define THREAD_EXIT() return NULL
-#define WSAGetLastError() (errno)   
-#define ZeroMemory(Dst, Len) memset((Dst), 0, (Len))
-typedef int SOCKET;           
-#define INVALID_SOCKET -1     
-#define SOCKET_ERROR   -1 
-#endif
-
+#include "platform.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 
-
-#define DEFAULT_BUFLEN 256
-#define DEFAULT_PORT "27015"
-#define MAX_CLIENTS 32
 
 THREAD_FUNC recv_thread(void *arg) {
     SOCKET sock = (SOCKET)(uintptr_t)arg;
@@ -109,11 +72,7 @@ int main(int argc, char **argv) {
         
         iResult = connect( ConnectSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
         if (iResult == SOCKET_ERROR) {
-            #ifdef _WIN32
-                closesocket(ConnectSocket);
-            #else
-                close(ConnectSocket);
-            #endif
+            CLOSE_SOCKET(ConnectSocket);
             ConnectSocket = INVALID_SOCKET;
             continue;
         }
@@ -147,11 +106,10 @@ int main(int argc, char **argv) {
     }
        
 
+    CLOSE_SOCKET(ConnectSocket);
 #ifdef _WIN32
-    closesocket(ConnectSocket);
     WSACleanup();
 #else
-    close(ConnectSocket);
     pthread_detach(tid);
 #endif
   
