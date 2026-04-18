@@ -32,7 +32,7 @@ THREAD_FUNC client_thread(void *arg) {
             socklen_t len = sizeof(addr);
             getpeername(client, (struct sockaddr*)&addr, &len);
             char* ip = inet_ntoa(addr.sin_addr);
-            
+
             printf("Client disconnected: %s:%d\n", ip, ntohs(addr.sin_port));
             clients[i] = clients[--client_count];
             break;
@@ -127,15 +127,3 @@ int main(void) {
 
     return 0;
 }
-
-
-
-
-/* TODO
-
-sql database for users: username,sha256 password, admin true/false
-add TSL security layer
-
-
-
-*/
