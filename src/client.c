@@ -1,8 +1,4 @@
 #include "platform.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
 
 
 THREAD_FUNC recv_thread(void *arg) {
@@ -15,6 +11,7 @@ THREAD_FUNC recv_thread(void *arg) {
         fflush(stdout);
     }
     printf("Disconnected from server.\n");
+    CLOSE_SOCKET(sock);
     exit(0);
     THREAD_EXIT();
 }
@@ -22,6 +19,11 @@ THREAD_FUNC recv_thread(void *arg) {
 
 
 int main(int argc, char **argv) {
+
+    if (argc != 3) {
+        printf("usage: %s <username> <server-ip>\n", argv[0]);
+        return 1;
+    }
 
 #ifdef _WIN32
     WSADATA wsaData;
@@ -36,11 +38,6 @@ int main(int argc, char **argv) {
                     *ptr = NULL,
                     hints;
     int iResult;
-
-    if (argc != 3) {
-        printf("usage: %s <username> <server-ip>\n", argv[0]);
-        return 1;
-    }
 
 
     ZeroMemory( &hints, sizeof(hints) );

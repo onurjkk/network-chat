@@ -1,8 +1,14 @@
 #ifndef PLATFORM_H
 #define PLATFORM_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
 #define DEFAULT_BUFLEN 256
 #define DEFAULT_PORT "27015"
+#define USERNAME_LEN 32
 
 #ifdef _WIN32
 #define _WIN32_WINNT 0x0600
@@ -30,10 +36,8 @@ typedef HANDLE thread_t;
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <pthread.h>
-#include <stdint.h>
 #include <netdb.h>         
-#include <errno.h>         
-#include <string.h>   
+#include <errno.h>          
 typedef pthread_t thread_t;
 #define THREAD_FUNC void*
 #define THREAD_CREATE(thr, func, arg) pthread_create(thr, NULL, func, arg)

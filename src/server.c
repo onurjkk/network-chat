@@ -1,8 +1,4 @@
 #include "platform.h"
-#include <stdio.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
 
 
 #define MAX_CLIENTS 32
@@ -31,6 +27,13 @@ THREAD_FUNC client_thread(void *arg) {
     MUTEX_LOCK(&clients_lock);
     for (int i = 0; i < client_count; ++i) {
         if (clients[i] == client) {
+
+            struct sockaddr_in addr;
+            socklen_t len = sizeof(addr);
+            getpeername(client, (struct sockaddr*)&addr, &len);
+            char* ip = inet_ntoa(addr.sin_addr);
+            
+            printf("Client disconnected: %s:%d\n", ip, ntohs(addr.sin_port));
             clients[i] = clients[--client_count];
             break;
         }
@@ -65,7 +68,6 @@ int main(void) {
     hints.ai_protocol = IPPROTO_TCP;
     hints.ai_flags = AI_PASSIVE;
 
-    // need to dynamically change server ip
     iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
     if ( iResult != 0 ) {
         printf("getaddrinfo failed with error: %d\n", iResult);
@@ -132,7 +134,6 @@ int main(void) {
 /* TODO
 
 sql database for users: username,sha256 password, admin true/false
-dinamically change server ip
 add TSL security layer
 
 
